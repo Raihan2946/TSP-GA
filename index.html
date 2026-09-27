@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>TSP Genetic Algorithm Simulator</title>
+
+    <link rel="stylesheet" href="css/style.css">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<header class="topbar">
+
+    <div class="brand">
+        <div class="brand-icon">GA</div>
+
+        <div>
+            <h1>TSP Genetic Algorithm</h1>
+            <span>Interactive Route Optimization Simulator</span>
+        </div>
+    </div>
+
+    <div class="status">
+        <span class="status-dot"></span>
+        <span id="statusText">Ready</span>
+    </div>
+
+</header>
+
+
+<main class="container">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+        <section class="panel">
+
+            <div class="panel-title">
+                <span>Map Editor</span>
+            </div>
+
+            <p class="instruction">
+                Klik area peta untuk menambahkan kota.
+            </p>
+
+            <div class="button-grid">
+
+                <button id="randomCitiesBtn" class="btn primary">
+                    Random Cities
+                </button>
+
+                <button id="clearCitiesBtn" class="btn danger">
+                    Clear Map
+                </button>
+
+            </div>
+
+            <div class="input-group">
+
+                <label for="cityCount">
+                    Jumlah Kota
+                </label>
+
+                <input
+                    type="number"
+                    id="cityCount"
+                    min="3"
+                    max="100"
+                    value="10"
+                >
+
+            </div>
+
+        </section>
+
+
+        <section class="panel">
+
+            <div class="panel-title">
+                <span>Genetic Algorithm</span>
+            </div>
+
+            <div class="input-group">
+
+                <label for="populationSize">
+                    Population Size
+                </label>
+
+                <input
+                    type="number"
+                    id="populationSize"
+                    min="10"
+                    max="1000"
+                    value="100"
+                >
+
+            </div>
+
+
+            <div class="input-group">
+
+                <label for="generations">
+                    Generations
+                </label>
+
+                <input
+                    type="number"
+                    id="generations"
+                    min="1"
+                    max="10000"
+                    value="500"
+                >
+
+            </div>
+
+
+            <div class="input-group">
+
+                <label for="crossoverRate">
+                    Crossover Rate
+                </label>
+
+                <div class="range-row">
+
+                    <input
+                        type="range"
+                        id="crossoverRate"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                        value="0.8"
+                    >
+
+                    <span id="crossoverValue">0.80</span>
+
+                </div>
+
+            </div>
+
+
+            <div class="input-group">
+
+                <label for="mutationRate">
+                    Mutation Rate
+                </label>
+
+                <div class="range-row">
+
+                    <input
+                        type="range"
+                        id="mutationRate"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                        value="0.02"
+                    >
+
+                    <span id="mutationValue">0.02</span>
+
+                </div>
+
+            </div>
+
+
+            <div class="input-group">
+
+                <label for="elitism">
+                    Elitism
+                </label>
+
+                <input
+                    type="number"
+                    id="elitism"
+                    min="0"
+                    max="50"
+                    value="2"
+                >
+
+            </div>
+
+
+            <div class="input-group">
+
+                <label for="selectionMethod">
+                    Selection
+                </label>
+
+                <select id="selectionMethod">
+
+                    <option value="tournament">
+                        Tournament Selection
+                    </option>
+
+                    <option value="roulette">
+                        Roulette Wheel
+                    </option>
+
+                </select>
+
+            </div>
+
+        </section>
+
+
+        <section class="panel">
+
+            <div class="panel-title">
+                <span>Simulation</span>
+            </div>
+
+            <div class="simulation-buttons">
+
+                <button id="startBtn" class="btn success">
+                    ▶ Start
+                </button>
+
+                <button id="pauseBtn" class="btn warning">
+                    ❚❚ Pause
+                </button>
+
+                <button id="stepBtn" class="btn secondary">
+                    Step
+                </button>
+
+                <button id="resetBtn" class="btn danger">
+                    ↻ Reset
+                </button>
+
+            </div>
+
+
+            <div class="input-group">
+
+                <label for="speed">
+                    Simulation Speed
+                </label>
+
+                <select id="speed">
+
+                    <option value="1000">0.5x</option>
+                    <option value="500" selected>1x</option>
+                    <option value="250">2x</option>
+                    <option value="100">5x</option>
+                    <option value="50">10x</option>
+
+                </select>
+
+            </div>
+
+        </section>
+
+
+        <section class="panel">
+
+            <div class="panel-title">
+                <span>Map Information</span>
+            </div>
+
+            <div class="info-row">
+                <span>Total Cities</span>
+                <strong id="cityCountDisplay">0</strong>
+            </div>
+
+            <div class="info-row">
+                <span>Current Generation</span>
+                <strong id="generationDisplay">0</strong>
+            </div>
+
+            <div class="info-row">
+                <span>Best Distance</span>
+                <strong id="distanceDisplay">-</strong>
+            </div>
+
+        </section>
+
+    </aside>
+
+
+    <!-- CONTENT -->
+    <section class="content">
+
+        <div class="map-card">
+
+            <div class="card-header">
+
+                <div>
+                    <h2>Route Map</h2>
+                    <p>Visualisasi perjalanan salesman</p>
+                </div>
+
+                <div class="legend">
+
+                    <span>
+                        <i class="legend-dot city"></i>
+                        City
+                    </span>
+
+                    <span>
+                        <i class="legend-dot start"></i>
+                        Start
+                    </span>
+
+                    <span>
+                        <i class="legend-line"></i>
+                        Best Route
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="canvas-container">
+
+                <canvas id="mapCanvas"></canvas>
+
+            </div>
+
+        </div>
+
+
+        <div class="stats-grid">
+
+            <div class="stat-card">
+
+                <span class="stat-label">
+                    Best Distance
+                </span>
+
+                <strong id="bestDistance">
+                    -
+                </strong>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <span class="stat-label">
+                    Generation
+                </span>
+
+                <strong id="currentGeneration">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <span class="stat-label">
+                    Population
+                </span>
+
+                <strong id="populationDisplay">
+                    100
+                </strong>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <span class="stat-label">
+                    Improvement
+                </span>
+
+                <strong id="improvement">
+                    -
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <div class="result-card">
+
+            <div class="card-header">
+
+                <div>
+                    <h2>Best Route</h2>
+                    <p>Solusi terbaik yang ditemukan</p>
+                </div>
+
+            </div>
+
+            <div id="routeDisplay" class="route-display">
+                Tambahkan kota untuk memulai.
+            </div>
+
+        </div>
+
+
+        <div class="chart-card">
+
+            <div class="card-header">
+
+                <div>
+                    <h2>Convergence</h2>
+                    <p>Perkembangan solusi terhadap generasi</p>
+                </div>
+
+            </div>
+
+            <div class="chart-container">
+
+                <canvas id="convergenceChart"></canvas>
+
+            </div>
+
+        </div>
+
+
+        <div class="info-card">
+
+            <h2>How Genetic Algorithm Works</h2>
+
+            <div class="steps">
+
+                <div class="step">
+                    <span>01</span>
+                    <div>
+                        <h3>Population</h3>
+                        <p>
+                            Membuat sekumpulan solusi rute secara acak.
+                        </p>
+                    </div>
+                </div>
+
+
+                <div class="step">
+                    <span>02</span>
+                    <div>
+                        <h3>Fitness</h3>
+                        <p>
+                            Mengukur kualitas setiap rute berdasarkan total jaraknya.
+                        </p>
+                    </div>
+                </div>
+
+
+                <div class="step">
+                    <span>03</span>
+                    <div>
+                        <h3>Selection</h3>
+                        <p>
+                            Memilih individu yang memiliki performa lebih baik.
+                        </p>
+                    </div>
+                </div>
+
+
+                <div class="step">
+                    <span>04</span>
+                    <div>
+                        <h3>Crossover</h3>
+                        <p>
+                            Menggabungkan dua parent menggunakan Order Crossover.
+                        </p>
+                    </div>
+                </div>
+
+
+                <div class="step">
+                    <span>05</span>
+                    <div>
+                        <h3>Mutation</h3>
+                        <p>
+                            Menukar posisi kota untuk mempertahankan keragaman populasi.
+                        </p>
+                    </div>
+                </div>
+
+
+                <div class="step">
+                    <span>06</span>
+                    <div>
+                        <h3>Elitism</h3>
+                        <p>
+                            Mempertahankan beberapa solusi terbaik ke generasi berikutnya.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<footer>
+
+    <p>
+        TSP Genetic Algorithm Simulator
+    </p>
+
+    <p>
+        Interactive Optimization Project
+    </p>
+
+</footer>
+
+
+<script src="js/tsp.js"></script>
+<script src="js/geneticAlgorithm.js"></script>
+<script src="js/map.js"></script>
+<script src="js/main.js"></script>
+
+</body>
+</html>
